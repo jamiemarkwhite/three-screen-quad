@@ -22,9 +22,11 @@ module.exports = function( THREE ){
 		
 		"varying vec2 vUv;",
 		"uniform sampler2D uTexture;",
+		"uniform float opacity;",
 		"void main(){",
 			"#ifndef debug",
-			"gl_FragColor = texture2D( uTexture , vUv );",
+			"vec4 texel = texture2D( uTexture , vUv );",
+			"gl_FragColor = vec4(texel.rgb, texel.a * opacity);",
 			"#else",
 			"gl_FragColor = vec4( vUv , 0. , 1. );",
 			'#endif',
@@ -53,6 +55,10 @@ module.exports = function( THREE ){
 				uSide:{
 					type:'v2',
 					value: new THREE.Vector2(1,1)
+				},
+				opacity:{
+					type: 'f',
+					value: 1
 				}
 			},
 
@@ -104,7 +110,7 @@ module.exports = function( THREE ){
 			this.setTop,
 			this.setLeft,
 			this.setBottom,
-			this.setRight
+			this.setRight,
 		];
 
 		this._components = [
@@ -128,6 +134,7 @@ module.exports = function( THREE ){
 		if( this.left !== null ) this.setLeft( this.left );
 		else this.setRight( this.right );
 
+		this.setOpacity(undefined !== params.opacity ? params.opacity : 1);
 	}
 
 	ScreenQuad.prototype = Object.create( THREE.Mesh.prototype );
@@ -152,6 +159,14 @@ module.exports = function( THREE ){
 
 		}
 
+	}
+
+	ScreenQuad.prototype.setOpacity = function( v ){
+		if( null === v ) return;
+
+		this.material.transparent = v > 0;
+
+		this.material.uniforms.opacity.value = v;
 	}
 
 	ScreenQuad.prototype.setScreenSize = function( width , height ){
